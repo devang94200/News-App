@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News App</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #f3f4f6;
+      color: #2c3e50;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem 1.5rem;
+      background: #34495e;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-radius: 0 0 15px 15px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: white;
+    }
+
+    header input {
+      flex-grow: 1;
+      margin-left: 1rem;
+      padding: 0.35rem 1rem;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      outline: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: box-shadow 0.3s ease, border-color 0.3s;
+    }
+
+    header input:focus {
+      border-color: #1abc9c;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .news-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+
+    .news-card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .news-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .news-card img {
+      width: 100%;
+      border-radius: 6px;
+      margin-bottom: 0.8rem;
+    }
+
+    .news-card h3 {
+      font-size: 1.1rem;
+      margin: 0.5rem 0;
+      color: #34495e;
+    }
+
+    .news-card p {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #7f8c8d;
+    }
+
+    .news-card a {
+      display: inline-block;
+      margin-top: 0.8rem;
+      padding: 0.5rem 1rem;
+      background: #1abc9c;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      transition: background 0.3s;
+    }
+
+    .news-card a:hover {
+      background: #16a085;
+    }
+
+    .spinner {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .spinner div {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-top: 4px solid #1abc9c;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>News App</h1>
+    <input type="text" id="location" placeholder="Search news...">
+  </header>
+
+  <div class="spinner">
+    <div></div>
+  </div>
+
+  <div class="news-container" id="news-container"></div>
+
+  <script>
+    const API_KEY = '3a897f6d8b554689a8755169636a886e';
+    const spinner = document.querySelector('.spinner');
+    const newsContainer = document.getElementById('news-container');
+    const locationInput = document.getElementById('location');
+
+    async function fetchNews(query) {
+      try {
+        spinner.style.display = 'flex';
+        newsContainer.innerHTML = '';
+
+        const response = await fetch(`https://newsapi.org/v2/everything?q=${query}&from=2024-12-24&sortBy=publishedAt&apiKey=${API_KEY}`);
+        const data = await response.json();
+
+        if (data.articles && data.articles.length > 0) {
+          data.articles.forEach(article => {
+            const newsCard = document.createElement('div');
+            newsCard.className = 'news-card';
+
+            newsCard.innerHTML = `
+              <img src="${article.urlToImage || 'https://via.placeholder.com/300'}" alt="${article.title}">
+              <h3>${article.title}</h3>
+              <p>${article.description || 'No description available.'}</p>
+              <a href="${article.url}" target="_blank">Read More</a>
+            `;
+
+            newsContainer.appendChild(newsCard);
+          });
+        } else {
+          newsContainer.innerHTML = '<h2>No news found for this query.</h2>';
+        }
+      } catch (error) {
+        console.error('Error fetching news:', error);
+        newsContainer.innerHTML = '<h2>Failed to fetch news. Please try again later.</h2>';
+      } finally {
+        spinner.style.display = 'none';
+      }
+    }
+
+    locationInput.addEventListener('keyup', (event) => {
+      if (event.key === 'Enter') {
+        const query = locationInput.value.trim();
+        if (query) fetchNews(query);
+      }
+    });
+  </script>
+</body>
+</html>
